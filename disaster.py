@@ -71,12 +71,6 @@ STATUS_STYLE = {
     "Rejected":                ("badge-critical", "❌"),
 }
 
-# Mock official credentials for this prototype (no real auth backend).
-OFFICIAL_CREDENTIALS = {
-    "admin": "resq2026",
-    "official1": "ndrf@123",
-}
-
 # ──────────────────────────────────────────────────────────────────────────
 # SHARED STATE (JSON file on disk — visible to every browser/session hitting
 # this same running app, which is what makes cross-device demo work).
@@ -239,10 +233,20 @@ def add_history(report, status, note=""):
 
 def get_all_zones(store):
     base = generate_zone_data()
-    custom = pd.DataFrame(store["custom_zones"]) if store["custom_zones"] else pd.DataFrame(columns=base.columns)
-    if not custom.empty:
-        custom = custom[base.columns]
-    return pd.concat([base, custom], ignore_index=True)
+    if not store["custom_zones"]:
+        return base.copy()
+    custom = pd.DataFrame(store["custom_zones"])[base.columns.tolist()]
+    combined = pd.concat([base, custom], ignore_index=True)
+    return _coerce_zone_dtypes(combined)
+
+
+NUMERIC_ZONE_COLS = ["Latitude", "Longitude", "Affected Population", "Rescued", "Active Distress Signals", "Shelters Active"]
+
+
+def _coerce_zone_dtypes(df):
+    for col in NUMERIC_ZONE_COLS:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    return df
 
 
 def approved_reports_as_zones(store):
@@ -258,7 +262,9 @@ def approved_reports_as_zones(store):
                 "Shelters Active": 0, "Last Updated": r["time"].split(" ")[-1], "Source": "Citizen Report",
             })
     cols = ["Zone", "Disaster Type", "Severity", "Latitude", "Longitude", "Affected Population", "Rescued", "Active Distress Signals", "Shelters Active", "Last Updated", "Source"]
-    return pd.DataFrame(rows, columns=cols)
+    if not rows:
+        return None  # signal "nothing to add" — caller must not concat an empty frame
+    return _coerce_zone_dtypes(pd.DataFrame(rows, columns=cols))
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -287,12 +293,12 @@ section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"]:not(.sg-
 }
 
 h1,h2,h3,h4{color:var(--text-main)!important; font-family:'Segoe UI',sans-serif; font-weight:800!important;}
-h1{font-size:36px!important;} h2{font-size:29px!important;} h3{font-size:23px!important;} h4{font-size:19px!important;}
-p, label, li{font-size:17px;}
-.stMarkdown p, .stCaption{font-size:17px!important;}
+h1{font-size:40px!important;} h2{font-size:32px!important;} h3{font-size:26px!important;} h4{font-size:21px!important;}
+p, label, li{font-size:18px;}
+.stMarkdown p, .stCaption{font-size:18px!important;}
 
 .stTabs [data-baseweb="tab-list"]{gap:6px;}
-.stTabs [data-baseweb="tab"]{background:#eef1f6;border-radius:8px 8px 0 0;padding:10px 18px;color:var(--text-dim);font-weight:700;font-size:16px;}
+.stTabs [data-baseweb="tab"]{background:#eef1f6;border-radius:8px 8px 0 0;padding:10px 18px;color:var(--text-dim);font-weight:700;font-size:17px;}
 .stTabs [aria-selected="true"]{background:var(--accent-red)!important;color:white!important;}
 .stTabs [aria-selected="true"] p{color:white!important;}
 
@@ -303,11 +309,11 @@ p, label, li{font-size:17px;}
 }
 .sg-sidebar-logo.sg-sidebar-logo *{color:#ffffff!important;}
 .sg-sidebar-logo h2{font-size:23px!important;margin:0!important;}
-.sg-sidebar-logo p{font-size:14px!important;opacity:0.95;margin:2px 0 0 0!important;}
-.sg-sidebar-section{background:#f7f9fc;border:1.5px solid var(--border-col);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:14px;}
+.sg-sidebar-logo p{font-size:15px!important;opacity:0.95;margin:2px 0 0 0!important;}
+.sg-sidebar-section{background:#f7f9fc;border:1.5px solid var(--border-col);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:15px;}
 .sg-sidebar-section.sg-sidebar-section *{color:var(--text-main)!important;}
-.sg-sidebar-section b{font-size:15px;}
-.sg-role-tag{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;background:var(--accent-blue-bg);color:var(--accent-blue)!important;}
+.sg-sidebar-section b{font-size:16px;}
+.sg-role-tag{display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:var(--accent-blue-bg);color:var(--accent-blue)!important;}
 
 .sg-banner{
     background:linear-gradient(90deg, #fff5f4 0%, #fff9ec 100%);
@@ -315,16 +321,16 @@ p, label, li{font-size:17px;}
     display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(217,41,28,0.10);
 }
 .sg-title{font-size:36px;font-weight:900;letter-spacing:0.3px;color:var(--text-main)!important;margin:0;}
-.sg-subtitle{color:var(--text-dim)!important;font-size:16px;margin-top:4px;font-weight:600;}
+.sg-subtitle{color:var(--text-dim)!important;font-size:17px;margin-top:4px;font-weight:600;}
 .sg-live-pill.sg-live-pill{
     background:var(--accent-red);color:#ffffff!important;border:1px solid var(--accent-red);
-    padding:7px 18px;border-radius:999px;font-size:14px;font-weight:800;animation:pulse 1.8s infinite;
+    padding:8px 20px;border-radius:999px;font-size:15px;font-weight:800;animation:pulse 1.8s infinite;
 }
 .sg-live-pill.sg-live-pill-blue{background:var(--accent-blue);border-color:var(--accent-blue);}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,41,28,0.45);}70%{box-shadow:0 0 0 10px rgba(217,41,28,0);}100%{box-shadow:0 0 0 0 rgba(217,41,28,0);}}
 
 .sg-card{background:var(--bg-card);border:2px solid var(--border-col);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(20,25,40,0.05);}
-.sg-card h4{margin:0 0 8px 0;font-size:19px;color:var(--text-main)!important;font-weight:800;letter-spacing:0.2px;}
+.sg-card h4{margin:0 0 8px 0;font-size:20px;color:var(--text-main)!important;font-weight:800;letter-spacing:0.2px;}
 .sg-card, .sg-card span:not(.badge), .sg-card div:not(.badge){color:var(--text-main);}
 
 .zone-critical{border-left:7px solid var(--accent-red); background:linear-gradient(90deg, var(--accent-red-bg) 0%, #fff 14%);}
@@ -333,46 +339,46 @@ p, label, li{font-size:17px;}
 .zone-stable{border-left:7px solid var(--accent-green); background:linear-gradient(90deg, var(--accent-green-bg) 0%, #fff 14%);}
 .zone-info{border-left:7px solid var(--accent-blue); background:linear-gradient(90deg, var(--accent-blue-bg) 0%, #fff 14%);}
 
-.badge{padding:6px 15px;border-radius:999px;font-size:14px;font-weight:800;display:inline-block;letter-spacing:0.3px;}
+.badge{padding:7px 16px;border-radius:999px;font-size:15px;font-weight:800;display:inline-block;letter-spacing:0.3px;}
 .badge.badge-critical{background:var(--accent-red);color:#ffffff!important;}
 .badge.badge-high{background:var(--accent-orange);color:#ffffff!important;}
 .badge.badge-moderate{background:var(--accent-amber);color:#ffffff!important;}
 .badge.badge-stable{background:var(--accent-green);color:#ffffff!important;}
 .badge.badge-info{background:var(--accent-blue);color:#ffffff!important;}
 
-.stButton>button{border-radius:8px;font-weight:700;font-size:17px;border:1.5px solid var(--border-col);color:var(--text-main)!important;}
-.stButton>button p{font-size:17px!important;color:var(--text-main)!important;}
+.stButton>button{border-radius:8px;font-weight:700;font-size:18px;border:1.5px solid var(--border-col);color:var(--text-main)!important;}
+.stButton>button p{font-size:18px!important;color:var(--text-main)!important;}
 .stButton>button[kind="primary"]{background:var(--accent-red);border-color:var(--accent-red);}
 .stButton>button[kind="primary"], .stButton>button[kind="primary"] p{color:#ffffff!important;}
 
 div[data-testid="stMetric"]{background:var(--bg-card);border:2px solid var(--border-col);border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(20,25,40,0.05);}
 div[data-testid="stMetricValue"]{font-size:30px!important;font-weight:900!important;}
 div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] *{color:var(--text-main)!important;}
-div[data-testid="stMetricLabel"]{font-size:15px!important;font-weight:700!important;}
+div[data-testid="stMetricLabel"]{font-size:16px!important;font-weight:700!important;}
 div[data-testid="stMetricLabel"], div[data-testid="stMetricLabel"] *{color:var(--text-dim)!important;}
-div[data-testid="stMetricDelta"]{font-size:15px!important;font-weight:700!important;}
+div[data-testid="stMetricDelta"]{font-size:16px!important;font-weight:700!important;}
 hr{border-color:var(--border-col);}
-.footer-note{color:var(--text-dim)!important;font-size:14px;text-align:center;margin-top:30px;}
+.footer-note{color:var(--text-dim)!important;font-size:15px;text-align:center;margin-top:30px;}
 
-.sg-contact-card{background:#fff;border:2px solid var(--accent-red);border-radius:14px;padding:16px 18px;font-size:17px;line-height:2;}
+.sg-contact-card{background:#fff;border:2px solid var(--accent-red);border-radius:14px;padding:16px 18px;font-size:18px;line-height:2;}
 .sg-contact-card, .sg-contact-card *{color:var(--text-main)!important;}
 
 .sg-login-card{background:#fff;border:2px solid var(--border-col);border-radius:18px;padding:34px 36px;box-shadow:0 6px 24px rgba(20,25,40,0.08);max-width:520px;margin:0 auto;}
 .sg-login-title{font-size:30px;font-weight:900;text-align:center;margin-bottom:4px;}
-.sg-login-sub{text-align:center;color:var(--text-dim)!important;font-size:15px;margin-bottom:20px;}
-.sg-timeline-step{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:15px;}
+.sg-login-sub{text-align:center;color:var(--text-dim)!important;font-size:16px;margin-bottom:20px;}
+.sg-timeline-step{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:16px;}
 .sg-timeline-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 
 [data-testid="stWidgetLabel"] p, [data-testid="stMarkdownContainer"] p, [data-testid="stCaptionContainer"] *,
 [data-testid="stExpander"] p, [data-testid="stForm"] label p, div[data-baseweb="select"] *,
 div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea, [data-testid="stThumbValue"],
 [data-testid="stTickBarMin"], [data-testid="stTickBarMax"], [data-testid="stFileUploaderDropzoneInstructions"] *,
-ul[role="listbox"] * { color:var(--text-main)!important; font-size:17px; }
-[data-testid="stCaptionContainer"] *{color:var(--text-dim)!important; font-size:14px!important;}
+ul[role="listbox"] * { color:var(--text-main)!important; font-size:18px; }
+[data-testid="stCaptionContainer"] *{color:var(--text-dim)!important; font-size:15px!important;}
 ::placeholder{color:var(--text-dim)!important; opacity:1;}
 
 [data-testid="stAlertContentSuccess"], [data-testid="stAlertContentInfo"],
-[data-testid="stAlertContentWarning"], [data-testid="stAlertContentError"] { font-size:16px!important; }
+[data-testid="stAlertContentWarning"], [data-testid="stAlertContentError"] { font-size:17px!important; }
 
 header[data-testid="stHeader"]{background:transparent!important; box-shadow:none!important;}
 [data-testid="stToolbar"]{right:8px;}
@@ -398,8 +404,8 @@ if st.session_state.role is None:
         """
         <div style="text-align:center;margin:30px 0 20px 0;">
             <div style="font-size:44px;font-weight:900;">🚨 RESQ</div>
-            <div style="color:#5b6473;font-size:16px;font-weight:600;">AI-Powered Disaster Resource Allocation & Evacuation Hub</div>
-            <div style="color:#5b6473;font-size:13px;">SIH 26206 · Student Innovation in Disaster Management</div>
+            <div style="color:#5b6473;font-size:17px;font-weight:600;">AI-Powered Disaster Resource Allocation & Evacuation Hub</div>
+            <div style="color:#5b6473;font-size:14px;">SIH 26206 · Student Innovation in Disaster Management</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -410,7 +416,7 @@ if st.session_state.role is None:
         tab_citizen, tab_official = st.tabs(["👤 Citizen Login", "🛡️ Official Login"])
 
         with tab_citizen:
-            st.markdown('<p style="font-size:15px;color:#5b6473;margin-top:8px;">Report emergencies and track relief status. No password required.</p>', unsafe_allow_html=True)
+            st.markdown('<p style="font-size:16px;color:#5b6473;margin-top:8px;">Report emergencies and track relief status. No password required.</p>', unsafe_allow_html=True)
             with st.form("citizen_login_form"):
                 c_name = st.text_input("Your Name", placeholder="e.g. Rahul Verma")
                 c_phone = st.text_input("Contact Number (optional)", placeholder="+91 98XXXXXXXX")
@@ -425,21 +431,14 @@ if st.session_state.role is None:
                     st.error("Please enter your name to continue.")
 
         with tab_official:
-            st.markdown('<p style="font-size:15px;color:#5b6473;margin-top:8px;">Verify reports, approve, and dispatch relief resources.</p>', unsafe_allow_html=True)
-            with st.form("official_login_form"):
-                o_user = st.text_input("Username", placeholder="e.g. admin")
-                o_pass = st.text_input("Password", type="password")
-                o_submit = st.form_submit_button("Login as Official →", use_container_width=True, type="primary")
-            if o_submit:
-                if OFFICIAL_CREDENTIALS.get(o_user) == o_pass:
-                    st.session_state.role = "official"
-                    st.session_state.official_name = o_user
-                    st.session_state.official_seen_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password.")
-            with st.expander("Demo credentials (for judges/testers)"):
-                st.caption("admin / resq2026   ·   official1 / ndrf@123")
+            st.markdown('<p style="font-size:16px;color:#5b6473;margin-top:8px;">Verify citizen reports, approve, and dispatch relief resources.</p>', unsafe_allow_html=True)
+            official_display_name = st.text_input("Your Name / Designation (optional)", placeholder="e.g. NDRF Duty Officer", key="judge_name_input")
+            if st.button("⚖️ Continue as Official / Judge →", use_container_width=True, type="primary", key="judge_login_btn"):
+                st.session_state.role = "official"
+                st.session_state.official_name = official_display_name.strip() or "Official"
+                st.session_state.official_seen_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                st.rerun()
+            st.caption("One-click access for demo & evaluation purposes — no password required.")
         st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
@@ -507,7 +506,11 @@ if auto_refresh:
 # ──────────────────────────────────────────────────────────────────────────
 all_zones = get_all_zones(store)
 citizen_zone_rows = approved_reports_as_zones(store)
-combined_zones = pd.concat([all_zones, citizen_zone_rows], ignore_index=True) if not citizen_zone_rows.empty else all_zones
+if citizen_zone_rows is not None and not citizen_zone_rows.empty:
+    combined_zones = pd.concat([all_zones, citizen_zone_rows], ignore_index=True)
+    combined_zones = _coerce_zone_dtypes(combined_zones)
+else:
+    combined_zones = all_zones
 total_signals = int(combined_zones["Active Distress Signals"].sum())
 active_critical = (combined_zones["Severity"] == "Critical").sum()
 
@@ -584,9 +587,9 @@ if page == "🗺️ Command Center & Live Map":
             f"""<div class="sg-card {sev_card_class(row['Severity'])}"><h4>{row['Zone']}{source_tag}</h4>
             <div style="display:flex;justify-content:space-between;align-items:center;">
                 <div><b>{row['Disaster Type']}</b> {sev_badge(row['Severity'])}<br/>
-                <span style="color:var(--text-dim);font-size:14px;">Affected: {row['Affected Population']:,} · Rescued: {row['Rescued']:,} ·
+                <span style="color:var(--text-dim);font-size:15px;">Affected: {row['Affected Population']:,} · Rescued: {row['Rescued']:,} ·
                 Distress Signals: {row['Active Distress Signals']} · Shelters: {row['Shelters Active']}</span></div>
-                <div style="text-align:right;color:var(--text-dim);font-size:12px;">Updated {row['Last Updated']}</div>
+                <div style="text-align:right;color:var(--text-dim);font-size:13px;">Updated {row['Last Updated']}</div>
             </div></div>""",
             unsafe_allow_html=True,
         )
@@ -742,7 +745,7 @@ elif page == "🆘 Citizen SOS Portal":
                 continue
             st.markdown(
                 f"""<div class="sg-card zone-info"><h4>{match['id']} — {match['location_name']} {status_badge(match['status'])}</h4>
-                <span style="color:var(--text-dim);font-size:14px;">{match['history'][-1]['note'] if match['history'] else ''} · last update {match['history'][-1]['time'] if match['history'] else match['time']}</span>
+                <span style="color:var(--text-dim);font-size:15px;">{match['history'][-1]['note'] if match['history'] else ''} · last update {match['history'][-1]['time'] if match['history'] else match['time']}</span>
                 </div>""",
                 unsafe_allow_html=True,
             )

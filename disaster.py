@@ -3,10 +3,10 @@ ResQ Live: Official Comprehensive Disaster Management & Early-Warning Platform
 =============================================================================
 A unified government-grade system encompassing all three disaster lifecycles:
 1. BEFORE DISASTER (Prediction, Live Satellites & Proactive Mitigation) - MAJOR PRIORITY
-    - Streaming real NASA Earth Observation (VIIRS / MODIS) & Doppler Radar feeds (No manual input needed!)
-    - Live Meteorological Station Sync (via Open-Meteo real-time telemetry) + AI Risk Simulator
-    - Topic-by-Topic Live Disaster Bulletins (Floods, Cyclones, Wildfires, Landslides, Earthquakes)
-    - Community Preparedness & Safe Shelter Evacuation Hub
+   - Streaming real NASA Earth Observation (VIIRS / MODIS) & Doppler Radar feeds (No manual input needed!)
+   - Live Meteorological Station Sync (via Open-Meteo real-time telemetry) + AI Risk Simulator
+   - Topic-by-Topic Live Disaster Bulletins (Floods, Cyclones, Wildfires, Landslides, Earthquakes)
+   - Community Preparedness & Safe Shelter Evacuation Hub
 2. DURING DISASTER (Automated First-Responder Initiation & Low-Bandwidth SOS Beacon)
 3. AFTER DISASTER (Post-Disaster Damage Reporting & Relief Distribution Tracker)
 
@@ -36,40 +36,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# Custom CSS injected to enforce larger fonts and a high-visibility SOS button everywhere
-st.markdown("""
-<style>
-    /* Increase base font size and headers globally for projection */
-    html, body, [class*="css"] {
-        font-size: 18px !important;
-    }
-    h1 {
-        font-size: 2.5rem !important;
-    }
-    h2 {
-        font-size: 2.0rem !important;
-    }
-    h3 {
-        font-size: 1.6rem !important;
-    }
-    p, span, label, div, .stMarkdown {
-        font-size: 1.15rem !important;
-    }
-    
-    /* Full Red, High-Visibility SOS Button Styling */
-    div.stButton > button:has(div:text-contains("SOS")),
-    div.stButton > button[kind="primary"],
-    button[key*="sos"] {
-        background-color: #ff0000 !important;
-        color: white !important;
-        font-weight: bold !important;
-        font-size: 1.3rem !important;
-        border-radius: 8px !important;
-        border: 2px solid #ffffff !important;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # ==============================================================================
 # 1. LIVE SATELLITE & SENSOR API FETCHERS (NASA GIBS, RAINVIEWER, OPEN-METEO)
@@ -336,17 +302,11 @@ def init_session_state():
 init_session_state()
 
 # ==============================================================================
-# 3. TOP GOVERNMENT EARLY-WARNING BANNER & TICKER (WITH LOGO IN TOP LEFT)
+# 3. TOP GOVERNMENT EARLY-WARNING BANNER & TICKER
 # ==============================================================================
 col_logo, col_portal_title = st.columns([1, 6])
 with col_logo:
-    try:
-        # Displaying the uploaded ResQ logo in the top left
-        logo_img = Image.open("logo.png") # Adjust filename if needed or pass path
-        st.image(logo_img, width=120)
-    except Exception:
-        # Fallback icon representation if asset is not locally referenced by name
-        st.markdown("## 🛡️ 🛰️")
+    st.markdown("## 🛰️ 🇮🇳")
 with col_portal_title:
     st.markdown("### NATIONAL DISASTER MANAGEMENT & SATELLITE EARLY-WARNING PORTAL")
     st.caption("ResQ Live Integrated Resilience System | Connected to National Earth Observation & Meteorological Satellites")
@@ -400,19 +360,7 @@ app_phase = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-# High-visibility full red SOS emergency broadcast button in sidebar
-st.markdown("""
-<style>
-div.stButton > button:first-child {
-    background-color: #ff0000;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-</style>
-""", unsafe_allow_html=True)
-
-if st.sidebar.button("🚨 BROADCAST SYSTEM EMERGENCY SOS", use_container_width=True, key="sidebar_sos"):
+if st.sidebar.button("🚨 Broadcast System Emergency Warning", use_container_width=True):
     new_alert = {
         "id": f"EW-{datetime.now().strftime('%Y-%H%M%S')}",
         "hazard": "Severe Meteorological Event",
@@ -445,7 +393,7 @@ if app_phase == "1. BEFORE Disaster (Prediction, Live Satellites & Early Warning
     ])
 
     # --------------------------------------------------------------------------
-    # SUB-TAB 1.1: LIVE SATELLITE & SENSOR FEEDS
+    # SUB-TAB 1.1: LIVE SATELLITE & SENSOR FEEDS (NO MANUAL UPLOAD REQUIRED!)
     # --------------------------------------------------------------------------
     with tab_satellites:
         st.subheader("Live Satellite Earth Observation & Doppler Radar Monitor")
@@ -640,275 +588,480 @@ if app_phase == "1. BEFORE Disaster (Prediction, Live Satellites & Early Warning
             highest_risk = max(flood_score, wildfire_score, cyclone_score)
 
         with col_scores:
-            st.markdown("#### AI Multi-Hazard Risk Assessment")
-            st.metric("Overall Disaster Threat Index", f"{highest_risk} / 100", delta="Critical Alert Threshold" if highest_risk > 70 else "Elevated Watch")
-            
-            st.write(f"• **Flood Inundation Risk**: {flood_score}%")
-            st.progress(flood_score / 100.0)
+            st.markdown("#### AI Risk Probability Forecast")
+            col_f, col_w, col_c = st.columns(3)
+            with col_f:
+                st.metric("Flood Risk", f"{flood_score}%", delta=f"{'+' if flood_score > 60 else ''}{flood_score - 50}%")
+            with col_w:
+                st.metric("Wildfire Risk", f"{wildfire_score}%", delta=f"{'+' if wildfire_score > 50 else ''}{wildfire_score - 40}%")
+            with col_c:
+                st.metric("Cyclone Risk", f"{cyclone_score}%", delta=f"{'+' if cyclone_score > 55 else ''}{cyclone_score - 45}%")
 
-            st.write(f"• **Cyclone / Wind Storm Risk**: {cyclone_score}%")
-            st.progress(cyclone_score / 100.0)
+            if highest_risk >= 75:
+                threat_name = "FLOOD" if highest_risk == flood_score else ("WILDFIRE" if highest_risk == wildfire_score else "CYCLONE")
+                st.error(
+                    f"🚨 **CRITICAL PRE-DISASTER ALERT TRIGGERED!**\n\n"
+                    f"Automated risk threshold exceeded: **{threat_name} RISK AT {highest_risk}%**.\n\n"
+                    "Automated early-warning sirens and responder pre-dispatch staging have been initiated."
+                )
+                if st.button("Transmit Early Warning Alert to Emergency Dispatch Console", use_container_width=True):
+                    new_disp = {
+                        "dispatch_id": f"AUTO-{datetime.now().strftime('%H%M%S')}",
+                        "hazard_trigger": f"AI Early-Warning Trigger: {threat_name} Risk {highest_risk}%",
+                        "unit": "Emergency Pre-Disaster Staging Unit",
+                        "destination": selected_sector,
+                        "status": "Staged",
+                        "time_triggered": datetime.now().strftime("%H:%M:%S"),
+                    }
+                    st.session_state.automated_dispatches.insert(0, new_disp)
+                    st.success("Automated Pre-Disaster Staging Dispatched!")
+            elif highest_risk >= 50:
+                st.warning(f"⚠️ **ELEVATED HAZARD WATCH**: Risk models predict significant likelihood ({highest_risk}%). Early advisories issued.")
+            else:
+                st.success("✅ **STABLE CONDITIONS**: Telemetry parameters are currently within safe baseline tolerances.")
 
-            st.write(f"• **Wildfire / Heat Anomaly Risk**: {wildfire_score}%")
-            st.progress(wildfire_score / 100.0)
+            fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=highest_risk,
+                title={'text': "Composite Hazard Threat Level"},
+                gauge={
+                    'axis': {'range': [0, 100]},
+                    'bar': {'color': "#ff4b4b" if highest_risk >= 75 else ("#ffa500" if highest_risk >= 50 else "#00c0f2")},
+                    'steps': [
+                        {'range': [0, 50], 'color': "#e8f4f8"},
+                        {'range': [50, 75], 'color': "#fff2cc"},
+                        {'range': [75, 100], 'color': "#fce8e6"},
+                    ],
+                    'threshold': {
+                        'line': {'color': "red", 'width': 4},
+                        'thickness': 0.75,
+                        'value': 75
+                    }
+                }
+            ))
+            fig_gauge.update_layout(height=260, margin=dict(l=20, r=20, t=40, b=20))
+            st.plotly_chart(fig_gauge, use_container_width=True)
+
+        st.markdown("#### 48-Hour Multi-Hazard Prediction Evolution")
+        hours_timeline = [f"T-{48 - i*4}h" for i in range(12)] + ["Current"] + [f"T+{i*4}h" for i in range(1, 6)]
+        trend_data = pd.DataFrame({
+            "Timeline": hours_timeline,
+            "Flood Risk Probability (%)": [20, 22, 25, 28, 35, 42, 48, 55, 62, 70, 78, 85, flood_score,
+                                           min(100, flood_score + 6), min(100, flood_score + 10),
+                                           max(0, flood_score + 4), max(0, flood_score - 5), max(0, flood_score - 15)],
+            "Wildfire Spread Index (%)": [40, 42, 45, 48, 52, 50, 48, 45, 40, 38, 35, 30, wildfire_score,
+                                          max(0, wildfire_score - 4), max(0, wildfire_score - 8),
+                                          max(0, wildfire_score - 15), max(0, wildfire_score - 20), max(0, wildfire_score - 25)],
+            "Cyclone Intensity Index (%)": [15, 15, 18, 20, 22, 25, 30, 40, 52, 65, 72, 80, cyclone_score,
+                                            min(100, cyclone_score + 8), min(100, cyclone_score + 12),
+                                            min(100, cyclone_score + 5), max(0, cyclone_score - 10), max(0, cyclone_score - 25)],
+        })
+        fig_trend = px.line(
+            trend_data,
+            x="Timeline",
+            y=["Flood Risk Probability (%)", "Wildfire Spread Index (%)", "Cyclone Intensity Index (%)"],
+            markers=True,
+            title="48-Hour Hazard Progression Curve"
+        )
+        fig_trend.update_layout(height=340, legend_title_text="Hazard Category")
+        st.plotly_chart(fig_trend, use_container_width=True)
 
     # --------------------------------------------------------------------------
     # SUB-TAB 1.3: TOPIC-BY-TOPIC LIVE DISASTER BULLETINS
     # --------------------------------------------------------------------------
     with tab_bulletins:
-        st.subheader("Topic-by-Topic Live Disaster Bulletins")
-        st.markdown("Official active government disaster alerts categorized by hazard classification:")
+        st.subheader("Official Live Situational Bulletins by Hazard Topic")
+        st.markdown(
+            "Real-time official updates, telemetry gauges, and government advisories classified by specific disaster categories."
+        )
 
-        for hazard_name, info in st.session_state.topic_bulletins.items():
-            with st.expander(f"📢 [{info['status']}] {hazard_name} (Severity Score: {info['severity_score']}/100)"):
-                col_b1, col_b2 = st.columns([2, 1])
+        for topic, data in st.session_state.topic_bulletins.items():
+            status = data["status"]
+            status_color = "🔴" if status == "WARNING" else ("🟠" if status == "WATCH" else ("🟡" if status == "ADVISORY" else "🟢"))
+
+            with st.expander(f"{status_color} **{topic}** — Status: **{status}** (Updated {data['time']})", expanded=(status in ["WARNING", "WATCH"])):
+                col_b1, col_b2, col_b3 = st.columns([2, 1, 1])
                 with col_b1:
-                    st.write(f"**Latest Bulletin**: {info['latest_update']}")
-                    st.write(f"**Sensor Telemetry Gauge**: {info['station_gauge']}")
-                    st.write(f"**Action Status**: {info['action_status']}")
+                    st.markdown(f"**Official Advisory Bulletin:**\n\n{data['latest_update']}")
+                    st.caption(f"Authority: {data['issued_by']}")
                 with col_b2:
-                    st.write(f"**Issued By**: {info['issued_by']}")
-                    st.write(f"**Timestamp**: {info['time']}")
-                    status_color = "🔴" if info['status'] == "WARNING" else ("🟠" if info['status'] == "WATCH" else "🟢")
-                    st.markdown(f"**Threat Status**: {status_color} **{info['status']}**")
+                    st.markdown("**Key Sensor Telemetry:**")
+                    st.write(data["station_gauge"])
+                    st.progress(data["severity_score"] / 100.0)
+                    st.caption(f"Calculated Threat Severity: {data['severity_score']}%")
+                with col_b3:
+                    st.markdown("**Government Action Status:**")
+                    st.info(data["action_status"])
 
     # --------------------------------------------------------------------------
     # SUB-TAB 1.4: PREPAREDNESS & EVACUATION HUB
     # --------------------------------------------------------------------------
     with tab_preparedness:
-        st.subheader("Community Preparedness & Safe Shelter Evacuation Hub")
-        st.markdown("Locate verified government safe shelters and view standard evacuation protocols.")
+        st.subheader("Community Preparedness & Evacuation Route Planning")
+        st.markdown(
+            "Actionable early-mitigation checklists, safe shelter directories, and pre-planned evacuation corridors."
+        )
 
-        shelters_df = pd.DataFrame([
-            {"Shelter Name": "Central Stadium Indoor Arena", "District": "Zone A (North)", "Capacity": "5,000 Persons", "Current Occupancy": "1,200", "Stock Status": "Fully Stocked (Water/Rations)", "Contact": "+91-98211-RESCUE"},
-            {"Shelter Name": "Govt Higher Secondary Complex", "District": "Zone B (Coastal)", "Capacity": "3,000 Persons", "Current Occupancy": "2,850", "Stock Status": "Critical Capacity Reached", "Contact": "+91-98212-RESCUE"},
-            {"Shelter Name": "Technopark Multipurpose Hall", "District": "Zone C (Inland)", "Capacity": "4,500 Persons", "Current Occupancy": "940", "Stock Status": "Available & Ready", "Contact": "+91-98213-RESCUE"},
-            {"Shelter Name": "Community Disaster Resilience Center", "District": "Zone D (Hillside)", "Capacity": "2,000 Persons", "Current Occupancy": "410", "Stock Status": "Fully Stocked", "Contact": "+91-98214-RESCUE"}
-        ])
-        st.dataframe(shelters_df, use_container_width=True)
+        col_chk, col_shelter_map = st.columns([1, 1])
+
+        with col_chk:
+            hazard_guide = st.selectbox(
+                "Select Pre-Disaster Hazard Checklist:",
+                ["🌊 Riverine & Flash Floods", "🌪️ Cyclones & High-Wind Storms", "🔥 Wildfires & Forest Conflagrations", "🏔️ Landslides & Mudflows", "🏚️ Earthquakes & Structural Tremors"]
+            )
+
+            if "Flood" in hazard_guide:
+                st.markdown("**Essential Pre-Flood Mitigation Checklist:**")
+                st.checkbox("Identify nearest elevated evacuation shelter (> 15m elevation)")
+                st.checkbox("Store 72 hours of sealed drinking water (4 liters per person per day)")
+                st.checkbox("Elevate electrical appliances and circuit breakers above projected flood line")
+                st.checkbox("Clear local street drainage culverts and stormwater drains of debris")
+                st.checkbox("Prepare a buoyant dry-bag with national IDs, prescriptions, and power banks")
+            elif "Cyclone" in hazard_guide:
+                st.markdown("**Essential Pre-Cyclone Mitigation Checklist:**")
+                st.checkbox("Board up or tape large glass windows and reinforce external doors")
+                st.checkbox("Trim weak tree branches within 10 meters of overhead utility lines")
+                st.checkbox("Secure rooftop solar panels, tin sheds, and outdoor water tanks")
+                st.checkbox("Charge all radio transceivers, flashlights, and mobile devices")
+            elif "Wildfire" in hazard_guide:
+                st.markdown("**Essential Pre-Wildfire Mitigation Checklist:**")
+                st.checkbox("Create a 30-meter defensible space by clearing dry brush and pine needles")
+                st.checkbox("Clean dry leaves from rooftop gutters and under wooden deck structures")
+                st.checkbox("Shut off residential LP gas cylinders and main fuel lines")
+            elif "Landslide" in hazard_guide:
+                st.markdown("**Essential Pre-Landslide Mitigation Checklist:**")
+                st.checkbox("Monitor hillsides for signs of land-movement (leaning trees, widening cracks)")
+                st.checkbox("Avoid sleeping in lower downhill bedrooms during heavy continuous rainfall")
+            else:
+                st.markdown("**Essential Pre-Earthquake Mitigation Checklist:**")
+                st.checkbox("Bolt heavy bookcases, water heaters, and tall storage cabinets to wall studs")
+                st.checkbox("Identify safe 'Drop, Cover, and Hold On' locations in every room")
+
+        with col_shelter_map:
+            st.markdown(f"#### Designated Safe Evacuation Shelters near {selected_sector}")
+            st.caption("Pre-surveyed relief camps equipped with food rations, backup generators, and medical staff.")
+
+            shelters_data = pd.DataFrame([
+                {"name": "Central High-Ground Stadium Shelter", "lat": sector_meta["lat"] + 0.02, "lon": sector_meta["lon"] + 0.015, "Capacity": "2,500 Beds", "Status": "Open & Stocked"},
+                {"name": "District Polytechnic Relief Camp", "lat": sector_meta["lat"] - 0.015, "lon": sector_meta["lon"] - 0.02, "Capacity": "1,200 Beds", "Status": "Open & Stocked"},
+                {"name": "North Hill Community Evacuation Center", "lat": sector_meta["lat"] + 0.035, "lon": sector_meta["lon"] - 0.01, "Capacity": "800 Beds", "Status": "Standby"},
+                {"name": "Naval Amphibious Base Camp", "lat": sector_meta["lat"] - 0.025, "lon": sector_meta["lon"] + 0.03, "Capacity": "3,000 Beds", "Status": "Open & Stocked"},
+            ])
+            st.map(shelters_data, latitude="lat", longitude="lon", zoom=11)
+            st.dataframe(shelters_data[["name", "Capacity", "Status"]], use_container_width=True)
 
 
 # ==============================================================================
-# 6. MODULE 2: DURING DISASTER (AUTOMATED DISPATCH & LOW-BANDWIDTH SOS)
+# 6. MODULE 2: DURING DISASTER (AUTOMATED RESPONSE & LOW-BANDWIDTH SOS)
 # ==============================================================================
-elif app_phase == "2. DURING DISASTER (Automated Dispatch & Low-Bandwidth SOS)":
-    st.title("🚨 Phase 2: DURING DISASTER (Automated First-Responder Dispatch & Emergency SOS)")
+elif app_phase == "2. DURING Disaster (Automated Dispatch & Low-Bandwidth SOS)":
+    st.title("⚡ Phase 2: DURING DISASTER (Active Response & Automated Relief Initiation)")
     st.markdown(
-        "**Core Mission**: Real-time coordination of emergency services, automated NDRF/SDRF dispatch "
-        "triggered by telemetry thresholds, and low-bandwidth SMS/satellite SOS beacon handling."
+        "**Core Focus**: When disaster strikes, manual victim reporting is severely hindered. "
+        "This module delivers **Automated First Responder Help Initiation** triggered by sensor risk breaches, "
+        "paired with an **ultra-lightweight, low-bandwidth 1-click Emergency SOS beacon**."
     )
 
-    tab_sos, tab_dispatch, tab_comms = st.tabs([
-        "🆘 Low-Bandwidth Emergency SOS Beacons",
-        "🚒 Automated First-Responder Dispatches",
-        "📡 Emergency Communication Grid & SMS Gateway"
-    ])
+    col_auto, col_sos = st.columns([1, 1])
 
-    # --------------------------------------------------------------------------
-    # SUB-TAB 2.1: SOS BEACONS (FULL RED ATTRACTIVE BUTTONS)
-    # --------------------------------------------------------------------------
-    with tab_sos:
-        st.subheader("Live Emergency SOS Distress Signals")
-        st.markdown("Citizens trapped in disaster zones can broadcast emergency coordinates and rescue requests here.")
+    with col_auto:
+        st.subheader("🤖 Automated Help Initiation & Dispatch")
+        st.markdown(
+            "Rather than waiting for manual reports from victims in distress, the system "
+            "automatically deploys emergency rescue resources to high-risk coordinates identified in Phase 1."
+        )
 
-        col_sos_form, col_sos_list = st.columns([1, 1])
+        st.markdown("#### Trigger New Automated Response")
+        with st.form("auto_dispatch_form"):
+            trigger_reason = st.selectbox(
+                "Triggering Sensor / Threat Event:",
+                [
+                    f"River Gauge Breach (> 8.5m) in {selected_sector}",
+                    "Satellite Thermal Wildfire Cluster (> 380K)",
+                    "Cyclone Gust Velocity (> 110 km/h)",
+                    "UAV Drone Detected Rising Water Cutoff",
+                    "Flash Flood Barrier Overflow Warning"
+                ]
+            )
+            unit_to_deploy = st.selectbox(
+                "Deploy Automated First Responder Unit:",
+                [
+                    "National Disaster Response Force (NDRF Flood Boat Squad)",
+                    "Aerial Water-Dropper Squadron",
+                    "Medical Rapid Triage Team",
+                    "Civil Defense Amphibious Evacuation Squad",
+                    "Heavy Clearance & Earthmover Unit"
+                ]
+            )
+            target_sector = st.text_input("Target Geographical Sector:", value=selected_sector)
 
-        with col_sos_form:
-            st.markdown("#### Broadcast New SOS Beacon")
-            with st.form("sos_beacon_form"):
-                sos_name = st.text_input("Full Name / Identifier")
-                sos_phone = st.text_input("Contact Number")
-                sos_people = st.number_input("Number of People Affected", min_value=1, max_value=50, value=3)
-                sos_triage = st.selectbox("Emergency Triage Level", ["Critical Medical Need", "Trapped by Floodwaters", "Building Collapse / Trapped", "Immediate Evacuation Assistance Needed"])
-                sos_details = st.text_area("Specific Situation Details & Landmarks")
-                
-                # Full red, highly attractive button for SOS submission
-                st.markdown("""
-                <style>
-                div.stFormSubmitButton > button {
-                    background-color: #ff0000 !important;
-                    color: white !important;
-                    font-size: 1.4rem !important;
-                    font-weight: bold !important;
-                    width: 100% !important;
-                    height: 60px !important;
-                    border-radius: 10px !important;
-                    border: 3px solid #ffff00 !important;
+            submitted_auto = st.form_submit_button("🚨 Confirm Automated Dispatch Trigger", use_container_width=True)
+            if submitted_auto:
+                new_entry = {
+                    "dispatch_id": f"DISP-{datetime.now().strftime('%M%S')}",
+                    "hazard_trigger": trigger_reason,
+                    "unit": unit_to_deploy,
+                    "destination": target_sector,
+                    "status": "Dispatched",
+                    "time_triggered": datetime.now().strftime("%H:%M:%S"),
                 }
-                </style>
-                """, unsafe_allow_html=True)
-                
-                submitted_sos = st.form_submit_button("🚨 TRANSMIT EMERGENCY SOS BEACON NOW 🚨")
+                st.session_state.automated_dispatches.insert(0, new_entry)
+                st.success(f"Dispatched {unit_to_deploy} to {target_sector}!")
 
-                if submitted_sos:
-                    new_sos = {
-                        "sos_id": f"SOS-{np.random.randint(2000, 9999)}",
-                        "latitude": sector_meta["lat"] + np.random.uniform(-0.02, 0.02),
-                        "longitude": sector_meta["lon"] + np.random.uniform(-0.02, 0.02),
-                        "triage": sos_triage,
-                        "people_count": sos_people,
-                        "details": f"{sos_name} ({sos_phone}): {sos_details}",
-                        "status": "Unassigned (Queued)",
-                        "timestamp": datetime.now().strftime("%H:%M:%S"),
-                    }
-                    st.session_state.sos_signals.insert(0, new_sos)
-                    st.success("🚨 EMERGENCY SOS BROADCASTED TO NEAREST NDRF/SDRF COMMAND CENTER!")
+        st.markdown("#### Live Emergency Dispatch Queue")
+        disp_df = pd.DataFrame(st.session_state.automated_dispatches)
+        st.dataframe(disp_df, use_container_width=True)
 
-        with col_sos_list:
-            st.markdown("#### Active Distress Queue")
-            for sos in st.session_state.sos_signals:
+    with col_sos:
+        st.subheader("🆘 Emergency SOS / Low-Bandwidth Beacon")
+        st.markdown(
+            "Designed for victims trapped in an active crisis with unstable connectivity. "
+            "Transmits only essential telemetry with minimal data payload (< 2KB)."
+        )
+
+        st.info("📶 Low-Bandwidth Mode Active. Minimal data footprint (< 2KB payload).")
+
+        with st.form("emergency_sos_form"):
+            st.markdown("**1-Click GPS Coordinate Ping**")
+            col_lat, col_lon = st.columns(2)
+            with col_lat:
+                sos_lat = st.number_input("Latitude:", value=sector_meta["lat"], format="%.5f")
+            with col_lon:
+                sos_lon = st.number_input("Longitude:", value=sector_meta["lon"], format="%.5f")
+
+            sos_triage = st.selectbox(
+                "Primary Critical Condition (Triage Tag):",
+                [
+                    "Trapped by Rising Water / Flood",
+                    "Critical Medical Need / Severe Injury",
+                    "Trapped in Collapsed Building / Rubble",
+                    "Elderly / Infant Without Food & Water",
+                    "Surrounded by Active Wildfire Smoke"
+                ]
+            )
+
+            sos_people = st.slider("Number of People Trapped:", min_value=1, max_value=25, value=3)
+            sos_details = st.text_area(
+                "Short Message (Landmark, Floor, Battery %):",
+                placeholder="e.g., 2nd floor, blue roof house near old church. Battery 8% left.",
+                max_chars=120
+            )
+
+            sos_submitted = st.form_submit_button("🔴 SEND EMERGENCY SOS DISTRESS BEACON", use_container_width=True)
+            if sos_submitted:
+                new_sos = {
+                    "sos_id": f"SOS-{datetime.now().strftime('%M%S')}",
+                    "latitude": sos_lat,
+                    "longitude": sos_lon,
+                    "triage": sos_triage,
+                    "people_count": sos_people,
+                    "details": sos_details if sos_details else "No additional notes.",
+                    "status": "Transmitted - Rescue Queue #1",
+                    "timestamp": datetime.now().strftime("%H:%M:%S"),
+                }
+                st.session_state.sos_signals.insert(0, new_sos)
                 st.error(
-                    f"**{sos['sos_id']}** | **{sos['triage']}**\n\n"
-                    f"• **People Affected**: {sos['people_count']}\n"
-                    f"• **Details**: {sos['details']}\n"
-                    f"• **Coordinates**: {sos['latitude']:.4f}°N, {sos['longitude']:.4f}°E\n"
-                    f"• **Status**: {sos['status']} | **Time**: {sos['timestamp']}"
+                    f"🚨 **SOS BEACON TRANSMITTED SUCCESSFULLY!**\n\n"
+                    f"Rescue Beacon Token: **{new_sos['sos_id']}**\n\n"
+                    f"Coordinates: **({sos_lat:.4f}, {sos_lon:.4f})**\n\n"
+                    "Stay calm. Keep your mobile device dry and preserve your battery. Emergency rescue teams have been alerted."
                 )
 
-    # --------------------------------------------------------------------------
-    # SUB-TAB 2.2: AUTOMATED DISPATCHES
-    # --------------------------------------------------------------------------
-    with tab_dispatch:
-        st.subheader("Automated First-Responder Unit Dispatches")
-        st.markdown("AI-driven dispatch triggers units based on real-time sensor breaches (e.g., river water levels or slope saturation).")
+        st.markdown("#### Active SOS Distress Signals")
+        sos_df = pd.DataFrame(st.session_state.sos_signals)
+        st.dataframe(sos_df[["sos_id", "triage", "people_count", "status", "timestamp"]], use_container_width=True)
 
-        for disp in st.session_state.automated_dispatches:
-            with st.container():
-                st.info(
-                    f"**Dispatch Identifier**: {disp['dispatch_id']} | **Assigned Unit**: {disp['unit']}\n\n"
-                    f"• **Trigger Event**: {disp['hazard_trigger']}\n"
-                    f"• **Destination**: {disp['destination']}\n"
-                    f"• **Mission Status**: 🟢 **{disp['status']}** (Dispatched at {disp['time_triggered']})"
-                )
-
-        if st.button("➕ Trigger Manual NDRF / SDRF Rapid Deployment", key="manual_dispatch"):
-            new_disp = {
-                "dispatch_id": f"DISP-{np.random.randint(9000, 9999)}",
-                "hazard_trigger": "Manual Emergency Command Override",
-                "unit": "National Rapid Action Medical Squadron",
-                "destination": selected_sector,
-                "status": "En Route",
-                "time_triggered": datetime.now().strftime("%H:%M:%S"),
-            }
-            st.session_state.automated_dispatches.insert(0, new_disp)
-            st.success("Rapid Deployment Unit Dispatched Successfully!")
-
-    # --------------------------------------------------------------------------
-    # SUB-TAB 2.3: LOW-BANDWIDTH COMMS
-    # --------------------------------------------------------------------------
-    with tab_comms:
-        st.subheader("Low-Bandwidth Satellite SMS & Radio Gateway")
-        st.markdown("When cellular towers fail during severe storms or floods, citizens and field officers can transmit compressed emergency packets.")
-        
-        st.code("""
-        [PACKET HEADER] -> RESQ-GATEWAY-IN, SECURE PROTOCOL v2.4
-        [SENDER ID] -> FIELD_UNIT_98
-        [GPS] -> 19.0760N, 72.8777E
-        [STATUS CODE] -> 3 (CRITICAL FLOOD INUNDATION)
-        [PAYLOAD] -> 4 CIVILIANS STRANDED ON ROOFTOP. BOAT REQUIRED.
-        [CHECKSUM] -> OK (VERIFIED VIA ISRO GSAT-30 RELAY)
-        """, language="text")
+        if not sos_df.empty:
+            st.markdown("#### Geospatial SOS Beacon Cluster Map")
+            st.map(sos_df, latitude="latitude", longitude="longitude", zoom=11)
 
 
 # ==============================================================================
-# 7. MODULE 3: AFTER DISASTER (DAMAGE REPORTING & RELIEF TRACKING)
+# 7. MODULE 3: AFTER DISASTER (REPORTING & RECOVERY)
 # ==============================================================================
-elif app_phase == "3. AFTER DISASTER (Damage Reporting & Relief Tracking)":
-    st.title("📋 Phase 3: AFTER DISASTER (Post-Disaster Damage Reporting & Relief Distribution)")
+elif app_phase == "3. AFTER Disaster (Damage Reporting & Relief Tracking)":
+    st.title("🤝 Phase 3: AFTER DISASTER (Reporting & Recovery)")
     st.markdown(
-        "**Core Mission**: Assessing post-disaster structural damage, managing infrastructure repairs, "
-        "and tracking transparent distribution of relief supplies to affected households."
+        "**Core Focus**: Once the acute danger passes, communities transition to recovery. "
+        "Log structural damages, request rebuilding supplies, and track relief distribution transparency."
     )
 
-    tab_damage, tab_relief = st.tabs([
-        "🏗️ Post-Disaster Damage Assessment Portal",
-        "📦 Relief Supply Inventory & Distribution Tracker"
+    tab_post_report, tab_recovery_track = st.tabs([
+        "📝 Post-Disaster Damage & Needs Reporting",
+        "📊 Resource & Relief Tracking Dashboard"
     ])
 
-    # --------------------------------------------------------------------------
-    # SUB-TAB 3.1: DAMAGE REPORTING
-    # --------------------------------------------------------------------------
-    with tab_damage:
-        st.subheader("Post-Disaster Infrastructure & Property Damage Reporting")
-        
-        col_rep_form, col_rep_view = st.columns([1, 1])
+    with tab_post_report:
+        st.subheader("Submit Post-Disaster Incident & Damage Report")
+        st.markdown(
+            "Citizens, community volunteers, and municipal officials can record infrastructure damage, "
+            "utility failures, and specific relief aid requirements."
+        )
 
-        with col_rep_form:
-            with st.form("damage_report_form"):
-                st.markdown("#### Submit Ground Damage Report")
-                loc_name = st.text_input("Location / Ward / Village Name")
-                damage_cat = st.selectbox("Damage Classification", ["Road Blockage & Mudslide", "Residential House Collapse", "Bridge / Culvert Washout", "Power Grid / Transformer Failure", "Agricultural Crop Inundation"])
-                severity_level = st.selectbox("Severity Assessment", ["Minor", "Moderate", "Severe", "Catastrophic"])
-                casualties_est = st.number_input("Estimated Injuries / Casualties", min_value=0, max_value=100, value=0)
-                supplies_req = st.text_input("Immediate Supplies Required (e.g. Tarps, Water, Medical)")
-                
-                submitted_rep = st.form_submit_button("Submit Official Damage Report")
+        with st.form("post_disaster_report_form"):
+            col_r1, col_r2 = st.columns(2)
+            with col_r1:
+                rep_location = st.text_input("Exact Location / Neighborhood / Ward:", value=selected_sector)
+                rep_type = st.selectbox(
+                    "Primary Type of Damage:",
+                    [
+                        "Residential Structural Collapse",
+                        "Bridge / Road Washout",
+                        "Drinking Water Pipeline Rupture",
+                        "Power Grid / Electrical Transformer Outage",
+                        "Agricultural Crop Flooding",
+                        "Hospital / Clinic Flooding"
+                    ]
+                )
+                rep_severity = st.selectbox("Assessed Severity:", ["Minor", "Moderate", "Severe", "Catastrophic"])
 
-                if submitted_rep:
+            with col_r2:
+                rep_casualties = st.number_input("Known Injuries / Casualties:", min_value=0, max_value=500, value=0)
+                rep_supplies = st.text_input(
+                    "Specific Urgent Supplies Needed:",
+                    placeholder="e.g., 500L Drinking Water, 50 Tarps, Chlorine Tablets"
+                )
+                rep_contact = st.text_input("Reporting Person / Official Contact:", placeholder="e.g., Ward Officer Sharma (+91-9876543210)")
+
+            rep_notes = st.text_area("Detailed Damage Description & Access Route Status:")
+
+            submitted_report = st.form_submit_button("Submit Post-Disaster Report", use_container_width=True)
+            if submitted_report:
+                if not rep_location:
+                    st.error("Please specify the location of the incident.")
+                else:
                     new_rep = {
-                        "report_id": f"REP-{np.random.randint(600, 999)}",
-                        "location": loc_name,
-                        "damage_type": damage_cat,
-                        "severity": severity_level,
-                        "casualties": casualties_est,
-                        "supplies_needed": supplies_req,
-                        "status": "Verified & Logged",
+                        "report_id": f"REP-{datetime.now().strftime('%M%S')}",
+                        "location": rep_location,
+                        "damage_type": rep_type,
+                        "severity": rep_severity,
+                        "casualties": rep_casualties,
+                        "supplies_needed": rep_supplies if rep_supplies else "General Relief",
+                        "status": "Logged & Awaiting Resource Assignment",
                         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
                     }
                     st.session_state.damage_reports.insert(0, new_rep)
-                    st.success("Damage Report Logged in National Recovery Database!")
+                    st.success(f"Damage Report **{new_rep['report_id']}** logged successfully! Municipal relief teams alerted.")
 
-        with col_rep_view:
-            st.markdown("#### Logged Damage Reports")
-            for rep in st.session_state.damage_reports:
-                st.warning(
-                    f"**{rep['report_id']}** | **{rep['location']}**\n\n"
-                    f"• **Damage Type**: {rep['damage_type']} ({rep['severity']})\n"
-                    f"• **Casualties**: {rep['casualties']}\n"
-                    f"• **Supplies Needed**: {rep['supplies_needed']}\n"
-                    f"• **Status**: {rep['status']}"
-                )
+        st.markdown("#### Recently Logged Post-Disaster Incident Reports")
+        st.dataframe(pd.DataFrame(st.session_state.damage_reports), use_container_width=True)
 
-    # --------------------------------------------------------------------------
-    # SUB-TAB 3.2: RELIEF TRACKING
-    # --------------------------------------------------------------------------
-    with tab_relief:
-        st.subheader("Transparent Relief Supply Distribution Tracker")
-        st.markdown("Monitoring the dispatch of drinking water, medical kits, and rations to affected districts.")
+    with tab_recovery_track:
+        st.subheader("Resource & Relief Distribution Tracking")
+        st.markdown(
+            "Live transparent tracking of requested relief materials, dispatched humanitarian aid, "
+            "and municipal infrastructure restoration progress."
+        )
 
-        relief_data = []
-        for item, counts in st.session_state.relief_inventory.items():
-            pct = int((counts["dispatched"] / counts["requested"]) * 100)
-            relief_data.append({
-                "Relief Item": item,
-                "Requested Quantity": counts["requested"],
-                "Dispatched Quantity": counts["dispatched"],
-                "Fulfillment %": f"{pct}%"
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        with col_m1:
+            st.metric("Total Incident Reports", len(st.session_state.damage_reports), delta="+2 Today")
+        with col_m2:
+            st.metric("Displaced Citizens Sheltered", "4,380", delta="+350 Re-housed")
+        with col_m3:
+            st.metric("Water Rations Distributed", "14,500 L", delta="88% Target Met")
+        with col_m4:
+            st.metric("Power Grid Restoration", "76%", delta="+12% Restored")
+
+        st.markdown("#### Relief Supply Pipeline (Requested vs. Dispatched)")
+        supply_records = []
+        for item, vals in st.session_state.relief_inventory.items():
+            pct = int((vals["dispatched"] / vals["requested"]) * 100) if vals["requested"] > 0 else 0
+            supply_records.append({
+                "Supply Category": item,
+                "Requested Units": vals["requested"],
+                "Dispatched Units": vals["dispatched"],
+                "Fulfillment (%)": pct
             })
-        
-        st.dataframe(pd.DataFrame(relief_data), use_container_width=True)
+        supply_df = pd.DataFrame(supply_records)
+
+        fig_supplies = px.bar(
+            supply_df,
+            x="Supply Category",
+            y=["Requested Units", "Dispatched Units"],
+            barmode="group",
+            title="Relief Supplies Inventory Tracker",
+            color_discrete_map={"Requested Units": "#ffa500", "Dispatched Units": "#00c0f2"}
+        )
+        fig_supplies.update_layout(height=340)
+        st.plotly_chart(fig_supplies, use_container_width=True)
+
+        st.dataframe(supply_df, use_container_width=True)
+
+        st.markdown("#### Infrastructure Recovery Milestones")
+        recovery_milestones = pd.DataFrame([
+            {"Sector": "Road Network", "Progress": "92%", "Status": "All Main Highways Cleared of Mudslides", "Target Date": "Completed"},
+            {"Sector": "Drinking Water", "Progress": "78%", "Status": "Chlorination Active in 14 of 18 Wards", "Target Date": "Next 48h"},
+            {"Sector": "Electrical Grid", "Progress": "76%", "Status": "Main Substation Restored; Feeders Staged", "Target Date": "Next 24h"},
+            {"Sector": "Cellular Networks", "Progress": "85%", "Status": "Portable COWs (Cell on Wheels) Deployed", "Target Date": "Active"},
+        ])
+        st.table(recovery_milestones)
 
 
 # ==============================================================================
 # 8. MODULE 4: SYSTEM SETTINGS & API CONNECTORS
 # ==============================================================================
 elif app_phase == "4. System Settings & National API Connectors":
-    st.title("⚙️ System Settings & National API Connectors")
-    st.markdown("Manage API credentials, satellite data feeds, and telemetry polling frequencies.")
+    st.title("⚙️ System Settings & External Earth-Observation Connectors")
+    st.markdown(
+        "Configure credentials for NASA Earthdata, ISRO Bhuvan Open Services, "
+        "and national meteorological radars."
+    )
 
-    st.text_input("NASA GIBS WMS Endpoint URL", value="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi")
-    st.text_input("Open-Meteo Telemetry API Base", value="https://api.open-meteo.com/v1/forecast")
-    st.text_input("RainViewer Doppler Radar Stream", value="https://api.rainviewer.com/public/weather-maps.json")
-    
-    if st.button("Save API Connector Settings", key="save_settings"):
-        st.success("API Connector Settings Successfully Updated!")
+    col_api_conf, col_docs = st.columns([1, 1])
 
+    with col_api_conf:
+        st.subheader("API Keys & Environment Variables")
+        with st.form("api_keys_form"):
+            nasa_key = st.text_input("NASA Earthdata / FIRMS API Key:", type="password", placeholder="Paste NASA Earthdata Bearer Token")
+            bhuvan_token = st.text_input("ISRO Bhuvan Web API Token (Optional):", type="password", placeholder="ISRO Open Data Key")
+            openweather_key = st.text_input("OpenWeatherMap API Key (Optional):", type="password", placeholder="e.g., 32-character hexadecimal key")
+
+            saved = st.form_submit_button("Save & Refresh Connectors", use_container_width=True)
+            if saved:
+                st.success("API configuration stored in session.")
+
+        st.markdown("#### Active Real-Time Feeds Status")
+        st.markdown(
+            "- **NASA GIBS WMS**: 🟢 Active (Streaming VIIRS/MODIS Daily Swaths)\n"
+            "- **RainViewer Global Radar**: 🟢 Active (Live 10-Minute Precipitation Doppler)\n"
+            "- **Open-Meteo Sensor Network**: 🟢 Active (Live Station Telemetry)\n"
+            "- **National Seismic Network**: 🟢 Operational"
+        )
+
+    with col_docs:
+        st.subheader("Government Early-Warning Pipeline")
+        st.markdown(
+            """
+            ```
+            [NASA VIIRS / MODIS / RainViewer Doppler]
+                             │
+                             ▼
+            [1. BEFORE DISASTER SATELLITE ENGINE]
+              ├── Auto-Stream Live Satellite & Radar Feeds (No User Input)
+              ├── Live Station Sync (Open-Meteo) vs. Scenario Simulator
+              ├── Topic-by-Topic Live Bulletins (Floods, Storms, Slides)
+              └── Early-Warning Threshold Alerts (>= 75%)
+                             │
+                             ▼
+            [2. DURING DISASTER CONSOLE]
+              ├── Automated Emergency Unit Dispatch
+              └── Low-Bandwidth 1-Click SOS Beacon (<2KB)
+                             │
+                             ▼
+            [3. AFTER DISASTER RECOVERY]
+              ├── Structural Damage Reports
+              └── Transparent Relief Supply Tracker
+            ```
+            """
+        )
 
 # ==============================================================================
-# 9. FOOTER
+# FOOTER
 # ==============================================================================
 st.markdown("---")
-st.markdown(
-    "**ResQ Live Platform v2.4** | Official Government-Grade Disaster Management & Satellite Early-Warning Portal. "
-    "Connected to NASA Earth Observation, Open-Meteo Telemetry, and National Disaster Response Grids."
-)
+col_f1, col_f2 = st.columns([2, 1])
+with col_f1:
+    st.caption("ResQ Live Platform | Government-Grade Comprehensive Disaster Management System")
+with col_f2:
+    st.caption("Typography: Streamlit Native | Live Satellites: Connected")

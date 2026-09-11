@@ -1,27 +1,33 @@
 """
 map_utils.py
 ------------
-Builds the live monitoring map. Two modes:
-  - "full": real Leaflet/OpenStreetMap map via folium (richer, heavier).
-  - "lite": plotly scatter-geo map, much lighter payload for low-connectivity
-    users (no external tile requests after the base render).
+Builds the live monitoring map using REAL satellite imagery tiles
+(Esri World Imagery - free, no API key) so it actually looks like a
+satellite view rather than a generic basemap.
 """
 
 import folium
-import plotly.graph_objects as go
 
 RISK_COLORS = {
-    "CRITICAL": "#b30000",
+    "CRITICAL": "#ff1f1f",
     "HIGH": "#ff6a00",
-    "MODERATE": "#ffb800",
-    "LOW": "#1fa855",
+    "MODERATE": "#ffcc00",
+    "LOW": "#2ecc71",
 }
+
+ESRI_SATELLITE_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+ESRI_ATTR = "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics"
 
 
 def build_full_map(predictions, resources=None, center=(22.9734, 78.6569), zoom=5):
-    m = folium.Map(location=center, zoom_start=zoom, tiles="CartoDB dark_matter", control_scale=True)
+    m = folium.Map(location=center, zoom_start=zoom, tiles=None, control_scale=True)
+    folium.TileLayer(tiles=ESRI_SATELLITE_URL, attr=ESRI_ATTR, name="Satellite", overlay=False).add_to(m)
+    # Light label layer on top so region/city names stay readable over imagery.
+    folium.TileLayer(
+        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        attr=ESRI_ATTR, name="Labels", overlay=True, control=False,
+    ).add_to(m)
 
-    # Satellite/drone monitored regions with risk prediction
     for p in predictions:
         color = RISK_COLORS.get(p["risk_level"], "#888")
         popup_html = (
@@ -36,10 +42,7 @@ def build_full_map(predictions, resources=None, center=(22.9734, 78.6569), zoom=
         folium.Circle(
             location=(p["lat"], p["lon"]),
             radius=p["affected_radius_km"] * 1000,
-            color=color,
-            fill=True,
-            fill_opacity=0.25,
-            weight=2,
+            color=color, fill=True, fill_opacity=0.25, weight=2,
         ).add_to(m)
         folium.Marker(
             location=(p["lat"], p["lon"]),
@@ -48,7 +51,6 @@ def build_full_map(predictions, resources=None, center=(22.9734, 78.6569), zoom=
             icon=folium.Icon(color="red" if p["risk_level"] in ("CRITICAL", "HIGH") else "orange", icon="warning-sign"),
         ).add_to(m)
 
-    # Nearby resources - hospitals, police, shelters
     if resources is not None:
         icon_map = {
             "Hospital": ("plus-sign", "blue"),
@@ -69,29 +71,17 @@ def build_full_map(predictions, resources=None, center=(22.9734, 78.6569), zoom=
     return m
 
 
-def build_lite_map(predictions):
-    """Low-bandwidth fallback: a single lightweight plotly scattergeo figure."""
-    lats = [p["lat"] for p in predictions]
-    lons = [p["lon"] for p in predictions]
-    colors = [RISK_COLORS.get(p["risk_level"], "#888") for p in predictions]
-    text = [f"{p['region']}: {p['risk_level']} - {p['disaster_type']}" for p in predictions]
-    sizes = [max(10, p["risk_score"] / 3) for p in predictions]
-
-    fig = go.Figure(go.Scattergeo(
-        lat=lats, lon=lons, text=text,
-        mode="markers",
-        marker=dict(size=sizes, color=colors, line=dict(width=1, color="white")),
-    ))
-    fig.update_geos(
-        scope="asia",
-        showcountries=True, countrycolor="#444",
-        showland=True, landcolor="#1a1a1a",
-        showocean=True, oceancolor="#0b0f14",
-        bgcolor="rgba(0,0,0,0)",
-    )
-    fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        height=420,
-    )
-    return fig
+def build_history_map(history_df):
+    m = folium.Map(location=(20.5, 78.9), zoom_start=3, tiles=None)
+    folium.TileLayer(tiles=ESRI_SATELLITE_URL, attr=ESRI_ATTR, name="Satellite", overlay=False).add_to(m)
+    sev_color = {"Critical": "#b30000", "High": "#ff6a00", "Medium": "#ffb800", "Low": "#1fa855"}
+    for _, row in history_df.iterrows():
+        folium.CircleMarker(
+            location=(row["lat"], row["lon"]),
+            radius=6 + (row["deaths"] ** 0.25),
+            color=sev_color.get(row["severity"], "#888"),
+            fill=True, fill_opacity=0.75,
+            popup=f"<b>{row['name']}</b><br>{row['date']}<br>Deaths: {row['deaths']}<br>{row['summary']}",
+            tooltip=row["name"],
+        ).add_to(m)
+    return m

@@ -1,0 +1,11 @@
+id,name,type,region,lat,lon,capacity,contact,status
+1,AIIMS Delhi,Hospital,Delhi,28.5672,77.2100,2478,011-26588500,Available
+2,Kerala Police HQ Trivandrum,Police Station,Kerala,8.4855,76.9492,150,0471-2721547,Available
+3,Red Cross Shelter Kochi,Shelter,Kerala,9.9312,76.2673,500,0484-2371853,Available
+4,Odisha State Disaster Response,Response Team,Odisha,20.2961,85.8245,300,0674-2534177,Available
+5,Guwahati Medical College Hospital,Hospital,Assam,26.1584,91.6408,1200,0361-2528417,Available
+6,Chamoli District Police,Police Station,Uttarakhand,30.4038,79.3200,80,01372-251437,Available
+7,Sikkim Relief Camp Gangtok,Shelter,Sikkim,27.3389,88.6065,350,03592-202033,Available
+8,NDRF Battalion Bhubaneswar,Response Team,Odisha,20.3559,85.8095,600,0674-2394606,Available
+9,Shimla Civil Hospital,Hospital,Himachal Pradesh,31.1048,77.1734,400,0177-2803073,Available
+10,Mumbai Fire Brigade HQ,Fire/Rescue,Maharashtra,18.9633,72.8317,250,022-23076111,Available
